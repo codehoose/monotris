@@ -8,7 +8,6 @@ namespace Monotris.Models
         public int Size = 3;
         public int[] Shape;
         public readonly List<int[]> Rotations = new();
-        public int CurrentRotation = 0;
 
         public Piece(Piece copy) : this(copy.Size, copy.Shape, copy.Rotations)
         {

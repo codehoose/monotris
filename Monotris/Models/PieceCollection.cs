@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Monotris.Models
+﻿namespace Monotris.Models
 {
     internal static class PieceCollection
     {
@@ -20,8 +18,8 @@ namespace Monotris.Models
             I = new Piece(4,
                 [
                     0,0,0,0,
-                    0,0,0,0,
                     1,1,1,1,
+                    0,0,0,0,
                     0,0,0,0
                 ],
                 [
