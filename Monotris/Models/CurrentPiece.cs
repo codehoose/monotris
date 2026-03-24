@@ -65,5 +65,35 @@
 
             return (minimum, maximum);
         }
+
+        public (int min, int max) GetMinAndMaxY()
+        {
+            var minimum = 10;
+            var maximum = -1;
+            var shape = Piece.Shape;
+            var matrix = Piece.Rotations[CurrentRotation];
+            var size = Piece.Size;
+
+            for (var y = 0; y < size; y++)
+            {
+                for (var x = 0; x < size; x++)
+                {
+                    var index = y * size + x;
+                    if (shape[matrix[index]] == 1)
+                    {
+                        if (y < minimum)
+                        {
+                            minimum = y;
+                        }
+                        if (y > maximum)
+                        {
+                            maximum = y;
+                        }
+                    }
+                }
+            }
+
+            return (minimum, maximum);
+        }
     }
 }

@@ -13,8 +13,10 @@ namespace Monotris
         private SpriteBatch _spriteBatch;
         private Texture2D _block;
         private List<Piece> _pieces;
-        private int _currentPiece;
         private CurrentPiece _piece;
+        private float _dropSpeed = 1f;
+        private float _dropTimer = 0f;
+        private KeyCooldown _dropKey;
 
         public Game1()
         {
@@ -27,7 +29,6 @@ namespace Monotris
 
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
             _block = new Texture2D(GraphicsDevice, 1, 1);
             _block.SetData([Color.White]);
             base.Initialize();
@@ -38,14 +39,13 @@ namespace Monotris
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             _pieces = PickBag.GetPieces();
             _piece = new CurrentPiece();
-            _piece.Piece = new Piece(_pieces[_currentPiece]);
+            _piece.Piece = new Piece(_pieces[0]);
 
-            Components.Add(new KeyTap(this, Keys.O, PreviousPiece));
-            Components.Add(new KeyTap(this, Keys.P, NextPiece));
             Components.Add(new KeyTap(this, Keys.Q, _piece.RotateLeft));
             Components.Add(new KeyTap(this, Keys.E, _piece.RotateRight));
-            Components.Add(new KeyCooldown(this, Keys.A, .2f, MoveLeft));
-            Components.Add(new KeyCooldown(this, Keys.D, .2f, MoveRight));
+            Components.Add(new KeyCooldown(this, [Keys.A, Keys.Left], .2f, MoveLeft));
+            Components.Add(new KeyCooldown(this, [Keys.D, Keys.Right], .2f, MoveRight));
+            Components.Add(_dropKey = new KeyCooldown(this, [Keys.S, Keys.Down], .2f, MoveDown));
         }
 
         protected override void Update(GameTime gameTime)
@@ -53,8 +53,46 @@ namespace Monotris
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            // TODO: Add your update logic here
             base.Update(gameTime);
+
+            var manualDrop = _dropKey.IsKeyHeld();
+            if (manualDrop)
+            {
+                _dropTimer = 0f;
+            }
+
+            _dropTimer += gameTime.ElapsedGameTime.Milliseconds / 1000f;
+            if (_dropTimer >= _dropSpeed && !manualDrop)
+            {
+                _dropTimer -= _dropSpeed;
+                _piece.Y++;
+            }
+
+            var (min, max) = _piece.GetMinAndMaxY();
+            if (_piece.Y + max >= 20)
+            {
+                // Reset everything
+                ResetToNewPiece();
+            }
+        }
+
+        private void UpdateBag()
+        {
+            _pieces.RemoveAt(0);
+            if (_pieces.Count < 4)
+            {
+                _pieces.AddRange(PickBag.GetPieces());
+            }
+        }
+
+        private void ResetToNewPiece()
+        {
+            UpdateBag();
+
+            _dropTimer = 0;
+            _piece.Piece = new Piece(_pieces[0]);
+            _piece.X = 0;
+            _piece.Y = 0;
         }
 
         protected override void Draw(GameTime gameTime)
@@ -105,19 +143,6 @@ namespace Monotris
             }
         }
 
-        private void PreviousPiece()
-        {
-            _currentPiece--;
-            if (_currentPiece < 0) _currentPiece = _pieces.Count - 1;
-            _piece.Piece = new Piece(_pieces[_currentPiece]);
-        }
-
-        private void NextPiece()
-        {
-            _currentPiece = (1 + _currentPiece) % _pieces.Count;
-            _piece.Piece = new Piece(_pieces[_currentPiece]);
-        }
-
         private void MoveLeft()
         {
             var (min, max) = _piece.GetMinAndMaxX();
@@ -136,6 +161,15 @@ namespace Monotris
                 return;
 
             _piece.X++;
+        }
+
+        private void MoveDown()
+        {
+            var (min, max) = _piece.GetMinAndMaxY();
+            if (_piece.Y + max >= 20)
+                return;
+
+            _piece.Y++;
         }
     }
 }
