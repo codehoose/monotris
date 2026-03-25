@@ -10,6 +10,8 @@ namespace Monotris
 {
     public class Game1 : Game
     {
+        private static int LEFT_OFFSET = 220;
+
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
         private Texture2D _block;
@@ -90,7 +92,8 @@ namespace Monotris
             GraphicsDevice.Clear(Color.CornflowerBlue);
             _spriteBatch.Begin();
 
-            DrawBarrier(10);
+            DrawBarrier(0);
+            DrawBarrier(11);
             DrawPiece(_piece);
             DrawBoard();
 
@@ -239,7 +242,7 @@ namespace Monotris
         {
             var sx = x * 30;
             var sy = y * 30;
-            _spriteBatch.Draw(_block, new Rectangle(sx, sy, 30, 30), color);
+            _spriteBatch.Draw(_block, new Rectangle(sx + LEFT_OFFSET + 30, sy, 30, 30), color);
         }
 
         private void DrawBarrier(int x)
@@ -248,7 +251,7 @@ namespace Monotris
             for (int y = 0; y < 20; y++)
             {
                 var py = y * 30;
-                _spriteBatch.Draw(_block, new Rectangle(px, py, 30, 30), Color.Gray);
+                _spriteBatch.Draw(_block, new Rectangle(px + LEFT_OFFSET, py, 30, 30), Color.Gray);
             }
         }
 
