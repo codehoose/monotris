@@ -11,6 +11,7 @@ namespace Monotris
     public class Game1 : Game
     {
         private static int LEFT_OFFSET = 220;
+        private static int PREVIEW_OFFSET = 655;
 
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
@@ -66,6 +67,8 @@ namespace Monotris
 
             base.Update(gameTime);
 
+            UpdateBag();
+
             var manualDrop = _dropKey.IsKeyHeld();
             if (manualDrop)
             {
@@ -96,9 +99,37 @@ namespace Monotris
             DrawBarrier(11);
             DrawPiece(_piece);
             DrawBoard();
+            DrawNextPieces();
 
             _spriteBatch.End();
             base.Draw(gameTime);
+        }
+
+        private void DrawNextPieces()
+        {
+            const int blockSize = 20;
+            var ox = 0; var oy = 0;
+
+            for (int i = 1; i <= 4; i++)
+            {
+                var piece = _pieces[i];
+                if (piece.Size == 2)
+                {
+                    oy += blockSize;
+                }
+
+                for (var y = 0; y < piece.Size; y++)
+                {
+                    for (var x = 0; x < piece.Size; x++)
+                    {
+                        var index = y * piece.Size + x;
+                        if (piece.Shape[index] != 0)
+                        DrawBlockPreview(x * blockSize + ox, y * blockSize + oy, piece.Colour, blockSize);
+                    }
+                }
+
+                oy += blockSize * 3;
+            }
         }
 
         private bool BlockedHorizontally(CurrentPiece piece, int direction = 1)
@@ -184,8 +215,7 @@ namespace Monotris
 
         private void UpdateBag()
         {
-            _pieces.RemoveAt(0);
-            if (_pieces.Count < 4)
+            if (_pieces.Count <= 4)
             {
                 _pieces.AddRange(PickBag.GetPieces());
             }
@@ -193,8 +223,8 @@ namespace Monotris
 
         private void ResetToNewPiece()
         {
+            _pieces.RemoveAt(0);
             UpdateBag();
-
             _dropTimer = 0;
             _piece.Piece = new Piece(_pieces[0]);
             _piece.X = 0;
@@ -243,6 +273,11 @@ namespace Monotris
             var sx = x * 30;
             var sy = y * 30;
             _spriteBatch.Draw(_block, new Rectangle(sx + LEFT_OFFSET + 30, sy, 30, 30), color);
+        }
+
+        private void DrawBlockPreview(int x, int y, Color colour, int size)
+        {
+            _spriteBatch.Draw(_block, new Rectangle(x + PREVIEW_OFFSET, y, size, size), colour);
         }
 
         private void DrawBarrier(int x)
