@@ -106,12 +106,12 @@ namespace Monotris
                 for (var x = 0; x < piece.Size; x++)
                 {
                     var pieceIndex = y * piece.Size + x;
-                    if (shape[pieceIndex] == 1)
+                    if (shape[pieceIndex] != 0)
                     {
                         var boardIndex = (piece.Y + y) * 10 + x + piece.X + direction;
                         var isOccupiedOrBoundary = boardIndex < 0 ||
                             boardIndex >= 10 * 20 ||
-                            _board[boardIndex] == 1;
+                            _board[boardIndex] != 0;
                         if (isOccupiedOrBoundary)
                         {
                             return true;
@@ -131,12 +131,12 @@ namespace Monotris
                 for (var x = 0; x < piece.Size; x++)
                 {
                     var pieceIndex = y * piece.Size + x;
-                    if (shape[pieceIndex] == 1)
+                    if (shape[pieceIndex] != 0)
                     {
                         var boardIndex = (piece.Y + y) * 10 + x + piece.X + direction;
                         var isOccupiedOrBoundary = boardIndex < 0 ||
                             boardIndex >= 10 * 20 ||
-                            _board[boardIndex] == 1;
+                            _board[boardIndex] != 0;
                         if (isOccupiedOrBoundary)
                         {
                             DrawBlock(x + piece.X + direction, piece.Y + y, color);
@@ -165,10 +165,10 @@ namespace Monotris
                 {
                     var boardIndex = (piece.Y + y - 1) * 10 + x + piece.X;
                     var pieceIndex = y * piece.Size + x;
-                    if (boardIndex < 10 * 20 && shape[pieceIndex] == 1)
+                    if (boardIndex < 10 * 20 && shape[pieceIndex] != 0)
                     {
                         var oneRowDown = (piece.Y + y) * 10 + x + piece.X;
-                        if (_board[oneRowDown] == 1)
+                        if (_board[oneRowDown] != 0)
                         {
                             return true;
                         }
@@ -209,9 +209,9 @@ namespace Monotris
                 for (var x = 0; x < size; x++)
                 {
                     var index = y * size + x;
-                    if (shape[matrix[index]] == 1)
+                    if (shape[matrix[index]] != 0)
                     {
-                        DrawBlock(piece.X + x, piece.Y + y);
+                        DrawBlock(piece.X + x, piece.Y + y, piece.Piece.Colour);
                     }
                 }
             }
@@ -224,9 +224,10 @@ namespace Monotris
                 for (var x = 0; x < 10; x++)
                 {
                     var index = y * 10 + x;
-                    if (_board[index] == 1)
+                    var colourIndex = _board[index];
+                    if (colourIndex != 0)
                     {
-                        DrawBlock(x, y);
+                        DrawBlock(x, y, PieceColour.Colours[colourIndex]);
                     }
                 }
             }
@@ -295,9 +296,9 @@ namespace Monotris
                 {
                     var boardIndex = (piece.Y + y - 1) * 10 + x + piece.X;
                     var pieceIndex = y * piece.Size + x;
-                    if (boardIndex < 10 * 20 && shape[pieceIndex] == 1)
+                    if (boardIndex < 10 * 20 && shape[pieceIndex] != 0)
                     {
-                        _board[boardIndex] = 1;
+                        _board[boardIndex] = PieceColour.GetIndex(piece.Colour);
                     }
                 }
             }

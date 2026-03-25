@@ -1,4 +1,6 @@
-﻿namespace Monotris.Models
+﻿using Microsoft.Xna.Framework;
+
+namespace Monotris.Models
 {
     internal class CurrentPiece
     {
@@ -18,6 +20,8 @@
         }
 
         public int Size => _piece?.Size ?? 0;
+
+        public Color Colour => _piece?.Colour ?? Color.White;
 
         public void ResetRotation()
         {
