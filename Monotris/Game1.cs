@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Monotris.Input;
 using Monotris.Models;
+using System;
 using System.Collections.Generic;
 
 namespace Monotris
@@ -17,6 +18,7 @@ namespace Monotris
         private float _dropSpeed = 1f;
         private float _dropTimer = 0f;
         private KeyCooldown _dropKey;
+        private int[] _board;
 
         public Game1()
         {
@@ -37,10 +39,17 @@ namespace Monotris
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
+
+            // Get the first set of pieces. They are the IJLOSTZ pieces in 
+            // a random order. We then assign the current piece.
             _pieces = PickBag.GetPieces();
             _piece = new CurrentPiece();
             _piece.Piece = new Piece(_pieces[0]);
 
+            // Fill the board with zeros
+            ResetBoard();
+
+            // Set up the game keys
             Components.Add(new KeyTap(this, Keys.Q, _piece.RotateLeft));
             Components.Add(new KeyTap(this, Keys.E, _piece.RotateRight));
             Components.Add(new KeyCooldown(this, [Keys.A, Keys.Left], .2f, MoveLeft));
@@ -68,12 +77,106 @@ namespace Monotris
                 _piece.Y++;
             }
 
-            var (min, max) = _piece.GetMinAndMaxY();
-            if (_piece.Y + max >= 20)
+            if (HitBottom(_piece))
             {
                 // Reset everything
+                StampPiece(_piece);
                 ResetToNewPiece();
             }
+        }
+
+        protected override void Draw(GameTime gameTime)
+        {
+            GraphicsDevice.Clear(Color.CornflowerBlue);
+            _spriteBatch.Begin();
+
+            DrawBarrier(10);
+            DrawPiece(_piece);
+            DrawBoard();
+
+            _spriteBatch.End();
+            base.Draw(gameTime);
+        }
+
+        private bool BlockedHorizontally(CurrentPiece piece, int direction = 1)
+        {
+            var shape = piece.GetRotatedShape();
+            for (var y = 0; y < piece.Size; y++)
+            {
+                for (var x = 0; x < piece.Size; x++)
+                {
+                    var pieceIndex = y * piece.Size + x;
+                    if (shape[pieceIndex] == 1)
+                    {
+                        var boardIndex = (piece.Y + y) * 10 + x + piece.X + direction;
+                        var isOccupiedOrBoundary = boardIndex < 0 ||
+                            boardIndex >= 10 * 20 ||
+                            _board[boardIndex] == 1;
+                        if (isOccupiedOrBoundary)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool DrawHorizontally(CurrentPiece piece, int direction, Color color)
+        {
+            var shape = piece.GetRotatedShape();
+            for (var y = 0; y < piece.Size; y++)
+            {
+                for (var x = 0; x < piece.Size; x++)
+                {
+                    var pieceIndex = y * piece.Size + x;
+                    if (shape[pieceIndex] == 1)
+                    {
+                        var boardIndex = (piece.Y + y) * 10 + x + piece.X + direction;
+                        var isOccupiedOrBoundary = boardIndex < 0 ||
+                            boardIndex >= 10 * 20 ||
+                            _board[boardIndex] == 1;
+                        if (isOccupiedOrBoundary)
+                        {
+                            DrawBlock(x + piece.X + direction, piece.Y + y, color);
+                        }
+                        else
+                        {
+                            var translucent = new Color(Color.Yellow, 0.1f);
+                            DrawBlock(x + piece.X + direction, piece.Y + y, translucent);
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool HitBottom(CurrentPiece piece)
+        {
+            var (min, max) = _piece.GetMinAndMaxY();
+            if (_piece.Y + max >= 20) return true;
+
+            var shape = piece.GetRotatedShape();
+            for (var y = 0; y < piece.Size; y++)
+            {
+                for (var x = 0; x < piece.Size; x++)
+                {
+                    var boardIndex = (piece.Y + y - 1) * 10 + x + piece.X;
+                    var pieceIndex = y * piece.Size + x;
+                    if (boardIndex < 10 * 20 && shape[pieceIndex] == 1)
+                    {
+                        var oneRowDown = (piece.Y + y) * 10 + x + piece.X;
+                        if (_board[oneRowDown] == 1)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
         private void UpdateBag()
@@ -95,23 +198,11 @@ namespace Monotris
             _piece.Y = 0;
         }
 
-        protected override void Draw(GameTime gameTime)
-        {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
-            _spriteBatch.Begin();
-
-            DrawBarrier(10);
-            DrawPiece(_piece);
-
-            _spriteBatch.End();
-            base.Draw(gameTime);
-        }
-
         private void DrawPiece(CurrentPiece piece)
         {
             var shape = piece.Piece.Shape;
             var matrix = piece.Piece.Rotations[piece.CurrentRotation];
-            var size = piece.Piece.Size;
+            var size = piece.Size;
 
             for (var y = 0; y < size; y++)
             {
@@ -126,11 +217,28 @@ namespace Monotris
             }
         }
 
-        private void DrawBlock(int x, int y)
+        private void DrawBoard()
+        {
+            for (var y = 0; y < 20; y++)
+            {
+                for (var x = 0; x < 10; x++)
+                {
+                    var index = y * 10 + x;
+                    if (_board[index] == 1)
+                    {
+                        DrawBlock(x, y);
+                    }
+                }
+            }
+        }
+
+        private void DrawBlock(int x, int y) => DrawBlock(x, y, Color.White);
+
+        private void DrawBlock(int x, int y, Color color)
         {
             var sx = x * 30;
             var sy = y * 30;
-            _spriteBatch.Draw(_block, new Rectangle(sx, sy, 30, 30), Color.White);
+            _spriteBatch.Draw(_block, new Rectangle(sx, sy, 30, 30), color);
         }
 
         private void DrawBarrier(int x)
@@ -150,6 +258,9 @@ namespace Monotris
             if (_piece.X - 1 + min < 0)
                 return;
 
+            if (BlockedHorizontally(_piece, -1))
+                return;
+
             _piece.X--;
         }
 
@@ -158,6 +269,9 @@ namespace Monotris
             var (min, max) = _piece.GetMinAndMaxX();
 
             if (_piece.X + 2 + max > 10)
+                return;
+
+            if (BlockedHorizontally(_piece))
                 return;
 
             _piece.X++;
@@ -170,6 +284,33 @@ namespace Monotris
                 return;
 
             _piece.Y++;
+        }
+
+        private void StampPiece(CurrentPiece piece)
+        {
+            var shape = piece.GetRotatedShape();
+            for (var y = 0; y < piece.Size; y++)
+            {
+                for (var x = 0; x < piece.Size; x++)
+                {
+                    var boardIndex = (piece.Y + y - 1) * 10 + x + piece.X;
+                    var pieceIndex = y * piece.Size + x;
+                    if (boardIndex < 10 * 20 && shape[pieceIndex] == 1)
+                    {
+                        _board[boardIndex] = 1;
+                    }
+                }
+            }
+        }
+
+        private void ResetBoard()
+        {
+            if (_board == null)
+            {
+                _board = new int[10 * 20];
+            }
+
+            Array.Fill(_board, 0);
         }
     }
 }
