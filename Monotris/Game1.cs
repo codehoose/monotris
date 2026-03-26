@@ -10,6 +10,12 @@ namespace Monotris
 {
     public class Game1 : Game
     {
+        private enum GameState
+        {
+            Dropping,
+            RemovingRows
+        }
+
         private static int LEFT_OFFSET = 220;
         private static int PREVIEW_OFFSET = 655;
 
@@ -18,6 +24,8 @@ namespace Monotris
         private Texture2D _block;
         private List<Piece> _pieces;
         private CurrentPiece _piece;
+        private float _removeTime;
+        private GameState _state = GameState.Dropping;
         private float _dropSpeed = 1f;
         private float _dropTimer = 0f;
         private KeyCooldown _dropKey;
@@ -67,6 +75,55 @@ namespace Monotris
 
             base.Update(gameTime);
 
+            if (HasCompletedRow() && _state != GameState.RemovingRows)
+            {
+                _removeTime = 0f;
+                _state = GameState.RemovingRows;
+            }
+
+            switch (_state)
+            {
+                case GameState.Dropping:
+                    PlayGame(gameTime);
+                    break;
+                case GameState.RemovingRows:
+                    RemoveRows(gameTime);
+                    break;
+            }
+        }
+
+        private void RemoveRows(GameTime gameTime)
+        {
+            if (_removeTime < 0.25f)
+            {
+                _removeTime += gameTime.TotalGameTime.Milliseconds / 1000f;
+            }
+            else
+            {
+                var rowToRemove = GetCompletedRow();
+                _removeTime = 0f;
+                if (rowToRemove >= 0)
+                {
+                    RemoveRowAt(rowToRemove);
+                }
+                else
+                {
+                    _state = GameState.Dropping;
+                }
+            }
+        }
+
+        private void RemoveRowAt(int rowToRemove)
+        {
+            var tmp = new List<int>();
+            tmp.AddRange(_board);
+            tmp.RemoveRange(rowToRemove * 10, 10);
+            tmp.InsertRange(0, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+            _board = tmp.ToArray();
+        }
+
+        private void PlayGame(GameTime gameTime)
+        {
             UpdateBag();
 
             var manualDrop = _dropKey.IsKeyHeld();
@@ -350,6 +407,26 @@ namespace Monotris
             }
 
             Array.Fill(_board, 0);
+        }
+
+        private bool HasCompletedRow() => GetCompletedRow() >= 0;
+
+        private int GetCompletedRow()
+        {
+            // Go UP because rows get completed from the bottom
+            for (var y = 19; y >= 0; y--)
+            {
+                var count = 0;
+                for (var x = 0; x < 10; x++)
+                {
+                    var index = y * 10 + x;
+                    if (_board[index] != 0) count++;
+                }
+
+                if (count == 10) return y;
+            }
+
+            return -1;
         }
     }
 }
