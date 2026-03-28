@@ -16,12 +16,18 @@ namespace Monotris
             RemovingRows
         }
 
+        private static int ONE_LINE_PTS = 40;
+        private static int TWO_LINE_PTS = 100;
+        private static int THREE_LINE_PTS = 300;
+        private static int FOUR_LINE_PTS = 1200;
+
         private static int LEFT_OFFSET = 220;
         private static int PREVIEW_OFFSET = 655;
 
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
         private Texture2D _block;
+        private SpriteFont _font;
         private List<Piece> _pieces;
         private CurrentPiece _piece;
         private float _removeTime;
@@ -30,6 +36,9 @@ namespace Monotris
         private float _dropTimer = 0f;
         private KeyCooldown _dropKey;
         private int[] _board;
+        private int _level;
+        private int _score;
+        private int _totalRowsCompleted;
 
         public Game1()
         {
@@ -50,6 +59,7 @@ namespace Monotris
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
+            _font = Content.Load<SpriteFont>("Font");
 
             // Get the first set of pieces. They are the IJLOSTZ pieces in 
             // a random order. We then assign the current piece.
@@ -78,6 +88,7 @@ namespace Monotris
             if (HasCompletedRow() && _state != GameState.RemovingRows)
             {
                 _removeTime = 0f;
+                _totalRowsCompleted = 0;
                 _state = GameState.RemovingRows;
             }
 
@@ -105,9 +116,12 @@ namespace Monotris
                 if (rowToRemove >= 0)
                 {
                     RemoveRowAt(rowToRemove);
+                    _totalRowsCompleted++;
                 }
                 else
                 {
+                    var pts = GetPointsForDrops(_level, _totalRowsCompleted);
+                    _score += pts;
                     _state = GameState.Dropping;
                 }
             }
@@ -157,6 +171,8 @@ namespace Monotris
             DrawPiece(_piece);
             DrawBoard();
             DrawNextPieces();
+
+            _spriteBatch.DrawString(_font, _score.ToString(), new Vector2(20,20), Color.White);
 
             _spriteBatch.End();
             base.Draw(gameTime);
@@ -427,6 +443,25 @@ namespace Monotris
             }
 
             return -1;
+        }
+
+        private int GetPointsForDrops(int level, int numRows)
+        {
+            // 40 * (n + 1)	100 * (n + 1)	300 * (n + 1)	1200 * (n + 1)
+            var pts = 0;
+            switch (numRows)
+            {
+                case 2:
+                    pts = TWO_LINE_PTS; break;
+                case 3:
+                    pts = THREE_LINE_PTS; break;
+                case 4:
+                    pts = FOUR_LINE_PTS; break;
+                default:
+                    pts = ONE_LINE_PTS; break;
+            }
+
+            return pts * (level + 1);
         }
     }
 }
