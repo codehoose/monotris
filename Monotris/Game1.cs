@@ -37,6 +37,7 @@ namespace Monotris
         private KeyCooldown _dropKey;
         private int[] _board;
         private int _level;
+        private int _rowClearCount;
         private int _score;
         private int _totalRowsCompleted;
 
@@ -122,6 +123,15 @@ namespace Monotris
                 {
                     var pts = GetPointsForDrops(_level, _totalRowsCompleted);
                     _score += pts;
+
+                    // Increment current Level?
+                    _rowClearCount += _totalRowsCompleted;
+                    if (_rowClearCount>=10)
+                    {
+                        _rowClearCount -= 10;
+                        _level++;
+                    }
+
                     _state = GameState.Dropping;
                 }
             }
@@ -172,7 +182,8 @@ namespace Monotris
             DrawBoard();
             DrawNextPieces();
 
-            _spriteBatch.DrawString(_font, _score.ToString(), new Vector2(20,20), Color.White);
+            _spriteBatch.DrawString(_font, $"Score: {_score}", new Vector2(20,20), Color.White);
+            _spriteBatch.DrawString(_font, $"Level: {_level}", new Vector2(20, 40), Color.Yellow);
 
             _spriteBatch.End();
             base.Draw(gameTime);
