@@ -489,9 +489,20 @@ namespace Monotris
 
         private void AddParticle(Color color, Vector2 position)
         {
-            var duration = 5f; 
-            var particle = new ParticleComponent(this, _spriteBatch, _block, position, color, duration);
-            Components.Add(particle);
+            var duration = 5f;
+            var rnd = new Random();
+            var count = 100 + rnd.Next(150);
+
+            for (var i = 0; i < count; i++)
+            {
+                var xOff = 4 + rnd.Next(26);
+                var yOff = 4 + rnd.Next(26);
+                var pos = position + new Vector2(xOff, yOff);
+                var dur = duration + (float)rnd.NextDouble() * 2f;
+
+                var particle = new ParticleComponent(this, _spriteBatch, _block, pos, color, dur);
+                Components.Add(particle);
+            }
         }
     }
 }

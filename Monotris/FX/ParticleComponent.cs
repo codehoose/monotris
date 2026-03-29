@@ -49,7 +49,7 @@ namespace Monotris.FX
         {
             base.Draw(gameTime);
             _spriteBatch.Draw(_texture,
-                              new Rectangle((int)_position.X, (int)_position.Y, 30, 30),
+                              new Rectangle((int)_position.X, (int)_position.Y, 4, 4),
                               _colour * _alpha);
         }
 
