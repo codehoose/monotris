@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Monotris.FX;
 using Monotris.Input;
 using Monotris.Models;
 using System;
@@ -130,6 +131,8 @@ namespace Monotris
                     {
                         _rowClearCount -= 10;
                         _level++;
+
+                        _dropSpeed = MathF.Pow(0.8f - ((_level - 1) * 0.007f), _level - 1);
                     }
 
                     _state = GameState.Dropping;
@@ -141,6 +144,14 @@ namespace Monotris
         {
             var tmp = new List<int>();
             tmp.AddRange(_board);
+
+            var start = rowToRemove * 10;
+            for (var i = start; i < start + 10; i++)
+            {
+                var x = LEFT_OFFSET + (i - start + 1) * 30;
+                AddParticle(PieceColour.Colours[_board[i]], new Vector2(x, rowToRemove * 30));
+            }
+
             tmp.RemoveRange(rowToRemove * 10, 10);
             tmp.InsertRange(0, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
             _board = tmp.ToArray();
@@ -184,9 +195,10 @@ namespace Monotris
 
             _spriteBatch.DrawString(_font, $"Score: {_score}", new Vector2(20,20), Color.White);
             _spriteBatch.DrawString(_font, $"Level: {_level}", new Vector2(20, 40), Color.Yellow);
+            _spriteBatch.DrawString(_font, $"Speed: {_dropSpeed}", new Vector2(20, 60), Color.Green);
 
-            _spriteBatch.End();
             base.Draw(gameTime);
+            _spriteBatch.End();
         }
 
         private void DrawNextPieces()
@@ -473,6 +485,13 @@ namespace Monotris
             }
 
             return pts * (level + 1);
+        }
+
+        private void AddParticle(Color color, Vector2 position)
+        {
+            var duration = 5f; 
+            var particle = new ParticleComponent(this, _spriteBatch, _block, position, color, duration);
+            Components.Add(particle);
         }
     }
 }
