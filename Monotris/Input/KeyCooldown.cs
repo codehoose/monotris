@@ -8,28 +8,35 @@ namespace Monotris.Input
     {
         private readonly Keys[] _keycode;
         private readonly Action _onKeyDown;
+        private readonly Func<bool> _isPaused;
         private readonly float _cooldown;
 
         private float _time;
 
-        public KeyCooldown(Game game, Keys keycode, float cooldown, Action onKeyDown)
-            : this(game, [keycode], cooldown, onKeyDown)
+        public KeyCooldown(Game game, Keys keycode, float cooldown, Action onKeyDown, Func<bool> isPaused)
+            : this(game, [keycode], cooldown, onKeyDown, isPaused)
         {
 
         }
 
-        public KeyCooldown(Game game, Keys[] keycode, float cooldown, Action onKeyDown)
+        public KeyCooldown(Game game, Keys[] keycode, float cooldown, Action onKeyDown, Func<bool> isPaused)
             : base(game)
         {
             _keycode = keycode;
             _cooldown = cooldown;
             _time = cooldown;
             _onKeyDown = onKeyDown;
+            _isPaused = isPaused;
         }
 
         public override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
+
+            if (_isPaused?.Invoke() ?? false)
+            {
+                return;
+            }
 
             var keyboard = Keyboard.GetState();
             if (IsKeyDown(keyboard) && _time == 0f)

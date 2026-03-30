@@ -14,7 +14,8 @@ namespace Monotris
         private enum GameState
         {
             Dropping,
-            RemovingRows
+            RemovingRows,
+            GameOver
         }
 
         private static int ONE_LINE_PTS = 40;
@@ -29,6 +30,7 @@ namespace Monotris
         private SpriteBatch _spriteBatch;
         private Texture2D _block;
         private SpriteFont _font;
+        private SpriteFont _russian;
         private List<Piece> _pieces;
         private CurrentPiece _piece;
         private float _removeTime;
@@ -62,6 +64,7 @@ namespace Monotris
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             _font = Content.Load<SpriteFont>("Font");
+            _russian = Content.Load<SpriteFont>("RussianLarge");
 
             // Get the first set of pieces. They are the IJLOSTZ pieces in 
             // a random order. We then assign the current piece.
@@ -74,11 +77,11 @@ namespace Monotris
             ResetBoard();
 
             // Set up the game keys
-            Components.Add(new KeyTap(this, Keys.Q, _piece.RotateLeft));
-            Components.Add(new KeyTap(this, Keys.E, _piece.RotateRight));
-            Components.Add(new KeyCooldown(this, [Keys.A, Keys.Left], .2f, MoveLeft));
-            Components.Add(new KeyCooldown(this, [Keys.D, Keys.Right], .2f, MoveRight));
-            Components.Add(_dropKey = new KeyCooldown(this, [Keys.S, Keys.Down], .2f, MoveDown));
+            Components.Add(new KeyTap(this, Keys.Q, _piece.RotateLeft, () => _state == GameState.GameOver));
+            Components.Add(new KeyTap(this, Keys.E, _piece.RotateRight, () => _state == GameState.GameOver));
+            Components.Add(new KeyCooldown(this, [Keys.A, Keys.Left], .2f, MoveLeft, () => _state == GameState.GameOver));
+            Components.Add(new KeyCooldown(this, [Keys.D, Keys.Right], .2f, MoveRight, () => _state == GameState.GameOver));
+            Components.Add(_dropKey = new KeyCooldown(this, [Keys.S, Keys.Down], .2f, MoveDown, () => _state == GameState.GameOver));
         }
 
         protected override void Update(GameTime gameTime)
@@ -95,6 +98,11 @@ namespace Monotris
                 _state = GameState.RemovingRows;
             }
 
+            if (BlockedAtTop(_piece))
+            {
+                _state = GameState.GameOver;
+            }
+
             switch (_state)
             {
                 case GameState.Dropping:
@@ -102,6 +110,8 @@ namespace Monotris
                     break;
                 case GameState.RemovingRows:
                     RemoveRows(gameTime);
+                    break;
+                case GameState.GameOver:
                     break;
             }
         }
@@ -198,9 +208,28 @@ namespace Monotris
             _spriteBatch.DrawString(_font, $"Level: {_level}", new Vector2(20, 40), Color.Yellow);
             _spriteBatch.DrawString(_font, $"Speed: {_dropSpeed}", new Vector2(20, 60), Color.Green);
 
+            if (_state == GameState.GameOver)
+            {
+                DrawStringCentre("GAME OVER", _russian, new Vector2(404, 304), Color.Blue);
+                DrawStringCentre("GAME OVER", _russian, new Vector2(400, 300), Color.Yellow);
+            }
+
             base.Draw(gameTime);
             _spriteBatch.End();
         }
+
+        private void DrawString(string text, SpriteFont font, Vector2 pos, Color colour)
+        {
+            _spriteBatch.DrawString(font, text, pos, colour);
+        }
+
+        private void DrawStringCentre(string text, SpriteFont font, Vector2 pos, Color colour)
+        {
+            var size = font.MeasureString(text);
+            var vec = pos - size / 2;
+            DrawString(text, font, vec, colour);
+        }
+
 
         private void DrawNextPieces()
         {
@@ -504,6 +533,27 @@ namespace Monotris
                     Components.Add(particle);
                 }
             }
+        }
+
+        private bool BlockedAtTop(CurrentPiece piece)
+        {
+            var pieceArray = new int[30]; // 3 rows x 10 columns
+            for (int y = 0; y < piece.Size; y++)
+            {
+                for (int x = 0; x < piece.Size; x++)
+                {
+                    var indexBoard = y * 10 + x + piece.X;
+                    var indexPiece = y * piece.Size + x;
+                    if (_board[indexBoard] != 0 && _piece.Piece.Shape[indexPiece] != 0)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+
+
         }
     }
 }
