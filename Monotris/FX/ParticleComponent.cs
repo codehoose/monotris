@@ -44,7 +44,7 @@ namespace Monotris.FX
                 Game.Components.Remove(this);
             }
 
-            _position += _speed * gameTime.TotalGameTime.Milliseconds / 1000f;
+            _position += _speed * gameTime.ElapsedGameTime.Milliseconds / 1000f;
         }
 
         public override void Draw(GameTime gameTime)
