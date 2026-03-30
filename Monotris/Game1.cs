@@ -68,6 +68,7 @@ namespace Monotris
             _pieces = PickBag.GetPieces();
             _piece = new CurrentPiece();
             _piece.Piece = new Piece(_pieces[0]);
+            _piece.X = 3;
 
             // Fill the board with zeros
             ResetBoard();
@@ -323,7 +324,7 @@ namespace Monotris
             UpdateBag();
             _dropTimer = 0;
             _piece.Piece = new Piece(_pieces[0]);
-            _piece.X = 0;
+            _piece.X = 3;
             _piece.Y = 0;
         }
 
@@ -491,17 +492,17 @@ namespace Monotris
         {
             var duration = 5f;
             var rnd = new Random();
-            var count = 100 + rnd.Next(150);
 
-            for (var i = 0; i < count; i++)
+            for (var y = 0; y < 2; y++)
             {
-                var xOff = 4 + rnd.Next(26);
-                var yOff = 4 + rnd.Next(26);
-                var pos = position + new Vector2(xOff, yOff);
-                var dur = duration + (float)rnd.NextDouble() * 2f;
+                for (var x = 0; x < 2; x++)
+                {
+                    var pos = position + new Vector2(x * 15, y * 15);
+                    var dur = duration + (float)rnd.NextDouble() * 2f;
 
-                var particle = new ParticleComponent(this, _spriteBatch, _block, pos, color, dur);
-                Components.Add(particle);
+                    var particle = new ParticleComponent(this, _spriteBatch, _block, pos, color, 15, dur);
+                    Components.Add(particle);
+                }
             }
         }
     }

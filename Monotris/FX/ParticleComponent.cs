@@ -9,6 +9,7 @@ namespace Monotris.FX
         private readonly Texture2D _texture;
         private readonly SpriteBatch _spriteBatch;
         private readonly Color _colour;
+        private readonly int _size;
         private Vector2 _position;
         private Vector2 _speed;
 
@@ -17,13 +18,14 @@ namespace Monotris.FX
         
         private float _alpha = 1f;
 
-        public ParticleComponent(Game game, SpriteBatch spriteBatch, Texture2D texture, Vector2 position, Color colour, float duration) : base(game)
+        public ParticleComponent(Game game, SpriteBatch spriteBatch, Texture2D texture, Vector2 position, Color colour, int size, float duration) : base(game)
         {
             _texture = texture;
             _spriteBatch = spriteBatch;
             _position = position;
             _duration = duration;
             _colour = colour;
+            _size = size;
             var rnd = new Random();
             _speed = new Vector2(0, (float)-rnd.NextDouble()) * 30;
             float randomAngle = (float)(rnd.NextDouble() * MathF.PI * 2);
@@ -49,7 +51,7 @@ namespace Monotris.FX
         {
             base.Draw(gameTime);
             _spriteBatch.Draw(_texture,
-                              new Rectangle((int)_position.X, (int)_position.Y, 4, 4),
+                              new Rectangle((int)_position.X, (int)_position.Y, _size, _size),
                               _colour * _alpha);
         }
 
