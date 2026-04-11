@@ -533,7 +533,7 @@ namespace Monotris.States
                     var pos = position + new Vector2(x * 15, y * 15);
                     var dur = duration + (float)rnd.NextDouble() * 2f;
 
-                    var particle = new ParticleComponent(Game, _spriteBatch, _block, pos, color, 15, dur);
+                    var particle = new ParticleComponent(Game, _block, pos, color, 15, dur);
                     Game.Components.Add(particle);
                 }
             }
@@ -548,6 +548,9 @@ namespace Monotris.States
                 {
                     var indexBoard = y * 10 + x + piece.X;
                     var indexPiece = y * piece.Size + x;
+                    // Bit of a hack, sometimes the pieces are at the left most edge
+                    // and in that case indexBoard is < 0. Let's just say it's ok. 
+                    if (indexBoard < 0) return false; 
                     if (_board[indexBoard] != 0 && _piece.Piece.Shape[indexPiece] != 0)
                     {
                         return true;

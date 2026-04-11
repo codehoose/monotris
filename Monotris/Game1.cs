@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Monotris.States;
 using System;
@@ -9,6 +10,9 @@ namespace Monotris
     {
         private GraphicsDeviceManager _graphics;
         private GameComponent _currentComponent;
+        private SpriteBatch _spriteBatch;
+
+        public SpriteBatch SpriteBatch => _spriteBatch;
 
         public Game1()
         {
@@ -39,6 +43,7 @@ namespace Monotris
         protected override void LoadContent()
         {
             base.LoadContent();
+            _spriteBatch = new SpriteBatch(GraphicsDevice);
             _currentComponent = AddComponent<MainMenuState>();
         }
 
@@ -53,7 +58,9 @@ namespace Monotris
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.Black);
+            _spriteBatch.Begin();
             base.Draw(gameTime);
+            _spriteBatch.End();
         }
 
         private GameComponent AddComponent<T>()

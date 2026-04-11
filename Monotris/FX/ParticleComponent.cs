@@ -18,10 +18,10 @@ namespace Monotris.FX
         
         private float _alpha = 1f;
 
-        public ParticleComponent(Game game, SpriteBatch spriteBatch, Texture2D texture, Vector2 position, Color colour, int size, float duration) : base(game)
+        public ParticleComponent(Game game, Texture2D texture, Vector2 position, Color colour, int size, float duration) : base(game)
         {
             _texture = texture;
-            _spriteBatch = spriteBatch;
+            _spriteBatch = ((Game1)game).SpriteBatch;
             _position = position;
             _duration = duration;
             _colour = colour;
